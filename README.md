@@ -1,1 +1,1 @@
-# [Qust]()
+# [Qust](https://amirteymuri.github.io/Qust/)
