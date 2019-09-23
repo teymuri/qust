@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+ <html>
+  <body bgcolor="#CCBF9C">
+
+    <p>
+      A Qust score can consist of one or more blocks (or musicaly speaking voices) which are marked at their beginning by a <code>&gt;</code>.<br>
+      At the toplevel of a score the window size (W:width x height) and the number of boxes (S:column x row) are defined:
+      <pre>W:800x800&S:8x8</pre>
+      or if MIDI is going to be used it should be indicated as well:
+      <pre>W:800x800&S:8x8&MD</pre>
+      Now initialize the first block and give it an initial tempo (<code>BPM</code>) and an initial color (<code>R</code> = red, <code>G</code> = green, <code>B</code> = blue). You can gain different colors by setting RGB parameters of a color (values 0 - 255). These parameters can be reset later at any time during the piece. At the end of the assignments terminate the line with a <code>;</code>:
+    </p>
+    <pre>&gt;BPM:120&R:255&G:100&B:15;</pre>
+    <p>In the next lines write the instructions for the boxes, with <code>0</code> and <code>1</code> indicating which box is off or on. In this example having <code>8x8</code> boxes a single state (musical pulse) would look something like:</p>
+    <pre>
+00000000
+00000001
+00000010
+00000011
+00000100
+00000101
+00000110
+00000111*
+    </pre>
+    <p>
+      Note that with the exception of the very last state, each state should terminate with a <code>*</code>. An example of changning the tempo after each single state at runtime would look like:</p>
+    <pre>
+&gt;
+BPM:60;
+00000000
+00000001
+00000010
+00000011
+00000100
+00000101
+00000110
+00000111*
+BPM:90;
+00000000
+00000001
+00000010
+00000011
+00000100
+00000101
+00000110
+00000111*
+BPM:135;
+00000000
+00000001
+00000010
+00000011
+00000100
+00000101
+00000110
+00000111*
+BPM:203;
+00000000
+00000001
+00000010
+00000011
+00000100
+00000101
+00000110
+00000111
+    </pre>
+    <p>
+      MIDI information come after each raw of a state. Each light box (<code>1</code>) will be associated with a single MIDI message which are read from left to right as pitch+velocity (at this time only these two parameter are supported). MIDI information which can not be associated and mapped to any light boxes are not processed. A pipeline should separate a raw from it's MIDI information.<br>
+    </p>
+    <p>In the following example a successive lights of a 1x8 grid are mapped to midi numbers
+      60, 64, 67, 71, 76, 80, 85, 90 and 96 with each note having a velocity of 100:</p>
+    <pre>
+S:8x1&W:800x100&MD
+
+&gt;BPM:60&R:255;
+10000000|60&100*
+01000000|64&100*
+00100000|67&100*
+00010000|71&100*
+00001000|76&100*
+00000100|80&100*
+00000010|85&100*
+00000001|90&100*
+00000001|96&100
+    </pre>
+    <p>Having more than one light in a raw it will be interpreted as a chord by assigning appropriate number of pitches+velocities.
+
+This is shown in the following example where lights are mapped from left to right order
+to pitches and velocities. Note that a plus sign <code>+</code> is used for expressing simultaneous
+      pitches and velocities:</p>
+    <pre>
+S:8x1&W:800x100&MD
+
+&gt;BPM:60&R:255;
+10000001|60+96&60+120*
+01000010|64+90&65+110*
+00100100|67+85&71+101*
+00011000|71+80&78+92*
+R:0&B:255;
+00011000|76+76&85+85*
+00100100|80+71&92+78*
+01000010|85+67&101+71*
+10000001|90+64&110+65*
+10000001|96+60&120+60
+    </pre>
+    <p>You can find more examples in the etudes directory.</p>
+    <p>Here you can watch a demo on YouTube:</p>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/eS31NkjzCiI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </body>
+  <p style="font-size:10px">Fri Aug  2 20:05:03 2019</p>
+ </html>

@@ -1,0 +1,110 @@
+#!/usr/bin/python2
+
+import argparse
+import pygame as pg
+from sys import exit
+from parser import (ScoreParser, Qust, KEYWORDS)
+
+
+def toggle_fullscreen(pygame_event, win_size):
+    """check for toggle between fullscreen and window size"""
+    if pygame_event.type == pg.KEYDOWN:
+        if pygame_event.key == pg.K_w:
+            pg.display.set_mode(win_size)
+        elif pygame_event.key == pg.K_f:
+            pg.display.set_mode(win_size, pg.FULLSCREEN)
+
+def close_ports(qusts):
+    for block in qusts:
+        block.close_midi_port()
+
+
+
+if __name__ == "__main__":
+    print "=" * 10
+    # get arguments
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("sp",
+                            help="score path")
+    arg_parser.add_argument("-ps", "--printstates",
+                            help="print running states",
+                            action="store_true")
+    arg_parser.add_argument("-mp", "--midiport",
+                            help="midi ouput port")
+    arg_parser.add_argument("-lp", "--loop",
+			    help="run x times",
+                            type=int)
+    args = arg_parser.parse_args()
+
+    # parse the score
+    parsed_score = ScoreParser(args.sp)
+
+    pg.init()
+    pg.display.init()
+
+    WIN_SIZE = parsed_score.compiletime[KEYWORDS["window"]]
+    WIN = pg.display.set_mode(WIN_SIZE)
+    pg.display.set_caption("QUST")
+    CLOCK = pg.time.Clock()
+    FPS = 1000 / pg.TIMER_RESOLUTION
+    # set mouse to invisible
+    pg.mouse.set_visible(False)
+    # useless events to block 
+    TO_BLOCK = (pg.ACTIVEEVENT,
+                pg.KEYUP,
+                pg.MOUSEMOTION,
+                pg.MOUSEBUTTONUP,
+                pg.MOUSEBUTTONDOWN,
+                pg.JOYAXISMOTION,
+                pg.JOYBALLMOTION,
+                pg.JOYHATMOTION,
+                pg.JOYBUTTONUP,
+                pg.JOYBUTTONDOWN,
+                pg.VIDEOEXPOSE)
+    pg.event.set_blocked(TO_BLOCK)
+
+    qusts = []
+    for block in parsed_score.runtimes:
+        qusts.append(Qust(WIN,
+		          parsed_score.compiletime,
+		          block,
+                          loop=args.loop,
+		          midiout=args.midiport))
+
+    pause = True
+    run = True
+    while run:    
+        for e in pg.event.get():
+            # Quit pygame 
+            if e.type == pg.QUIT:
+                run = False
+                break
+            elif e.type == pg.KEYDOWN:
+                if e.key == pg.K_q:
+                    run = False
+                    break
+                elif e.key == pg.K_SPACE:
+                    pause = False
+                elif e.key == pg.K_p:
+                    pause = True
+            if not pause:
+                for block in qusts:
+                    block.tick(e, args.printstates)
+            # watch fullscreen toggles
+            toggle_fullscreen(e, WIN_SIZE)
+        if not pause:
+            # black main window
+            WIN.fill((0, 0, 0))
+            # draw all qusts
+            for qust in qusts:
+                qust.draw()
+        # control frames per seconds
+        CLOCK.tick(FPS)
+        pg.display.update()
+    
+    if parsed_score.avec_midi:
+        close_ports(qusts)
+    pg.display.quit()
+    pg.quit()
+    print "=" * 10
+    exit()
