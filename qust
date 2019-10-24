@@ -18,10 +18,10 @@ def close_ports(qusts):
     for block in qusts:
         block.close_midi_port()
 
-
+PROG_DELIMIT = "=" * 13
 
 if __name__ == "__main__":
-    print "=" * 10
+    print PROG_DELIMIT
     # get arguments
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("sp",
@@ -106,5 +106,5 @@ if __name__ == "__main__":
         close_ports(qusts)
     pg.display.quit()
     pg.quit()
-    print "=" * 10
+    print PROG_DELIMIT
     exit()
